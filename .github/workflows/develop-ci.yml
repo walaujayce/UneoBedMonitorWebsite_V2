@@ -24,14 +24,8 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t p2211/uneo_bed_monitor_website_v2:${{ github.ref_name }} .
-          docker tag p2211/uneo_bed_monitor_website_v2:${{ github.ref_name }} p2211/uneo_bed_monitor_website_v2:develop
-
-          echo "COMMIT_TAG=${{ secrets.DOCKERHUB_USERNAME }} >> $GITHUB_OUTPUT
-          echo "COMMIT_TAG=${{ secrets.DOCKERHUB_PASSWORD }} >> $GITHUB_OUTPUT
-          echo "COMMIT_TAG=${{ github.ref_name }} >> $GITHUB_OUTPUT
+          docker build -t p2211/uneo_bed_monitor_website_v2:develop .
 
       - name: Push Docker Image
         run: |
-          docker push p2211/uneo_bed_monitor_website_v2:${{ github.ref_name }}
           docker push p2211/uneo_bed_monitor_website_v2:develop
