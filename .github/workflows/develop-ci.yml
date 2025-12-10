@@ -50,39 +50,41 @@ jobs:
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
 
-      # --------------------------------------
-      # ✨ 下載完整 Raw Workflow Logs（失敗時）
-      # --------------------------------------
-      - name: Download Full Raw Logs
+      # -----------------------------------
+      # 收集完整 workflow log（只在失敗時）
+      # -----------------------------------
+      - name: Collect logs
         if: failure()
         run: |
           mkdir logs
+          dmesg > logs/system.log || true
+          journalctl -xe > logs/journal.log || true
+          cp $GITHUB_WORKSPACE/.github/workflows/*.yml logs/ 2>/dev/null || true
 
-          echo "Downloading GitHub Actions full logs...."
-          curl -L \
-            -H "Authorization: token ${{ secrets.ACTIONS_TOKEN }}" \
-            -o logs/full_logs.zip \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/logs"
+          # 將整個 job log 收集：
+          echo "===== GitHub Job Log Begin =====" > logs/job.log
+          RUNNER_TRACKING_ID=""  # 避免污染
+          cat $GITHUB_STEP_SUMMARY >> logs/job.log 2>/dev/null || true
+          echo "===== GitHub Job Log End =====" >> logs/job.log
 
-          echo "Done downloading logs."
+          tar -czf logs.tar.gz logs
 
-      - name: Upload Full Logs Artifact
+      - name: Upload logs artifact
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: full-github-logs
-          path: logs/full_logs.zip
+          name: build-failed-logs
+          path: logs.tar.gz
 
       # -------------------------------
       # ✉️ 失敗通知 Email
       # -------------------------------
-      - name: Download Logs for Email
+      - name: Download log artifact
         if: failure()
         uses: actions/download-artifact@v4
         with:
-          name: full-github-logs
+          name: build-failed-logs
           path: .
-
 
       - name: Send failure email
         if: failure()
@@ -101,5 +103,5 @@ jobs:
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
 
-            附件包含完整 GitHub Actions Raw Log（full_logs.zip）
-          attachments: full_logs.zip
+            已附上完整的工作流程 Log（logs.tar.gz）
+          attachments: logs.tar.gz
