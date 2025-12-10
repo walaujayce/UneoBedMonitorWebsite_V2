@@ -24,8 +24,8 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t p2211/uneo_bed_monitor_website_v2:develop .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/uneo_bed_monitor_website_v2:latest-dev .
 
       - name: Push Docker Image
         run: |
-          docker push p2211/uneo_bed_monitor_website_v2:develop
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/uneo_bed_monitor_website_v2:latest-dev

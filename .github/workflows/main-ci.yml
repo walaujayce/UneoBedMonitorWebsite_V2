@@ -3,10 +3,10 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - latest
+      - main
   pull_request:
     branches:
-      - latest
+      - main
 
 jobs:
   build:
@@ -14,20 +14,18 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build Docker Image
         run: |
-          docker build -t p2211/uneo_bed_monitor_website_v2:${{ github.ref_name }} .
-          docker tag p2211/uneo_bed_monitor_website_v2:${{ github.ref_name }} p2211/uneo_bed_monitor_website_v2:latest
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/uneo_bed_monitor_website_v2:latest .
 
       - name: Push Docker Image
         run: |
-          docker push p2211/uneo_bed_monitor_website_v2:${{ github.ref_name }}
-          docker push p2211/uneo_bed_monitor_website_v2:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/uneo_bed_monitor_website_v2:latest
