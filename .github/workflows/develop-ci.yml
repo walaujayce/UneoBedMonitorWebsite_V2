@@ -58,7 +58,7 @@ jobs:
         run: |
           mkdir logs
 
-          echo "Downloading GitHub Actions full logs..."
+          echo "Downloading GitHub Actions full logs...."
           curl -L \
             -H "Authorization: token ${{ secrets.ACTIONS_TOKEN }}" \
             -o logs/full_logs.zip \
