@@ -29,3 +29,43 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/uneo_bed_monitor_website_v2:latest
+
+      # -------------------------------
+      # ✉️ 成功通知 Email
+      # -------------------------------
+      - name: Send success email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: mail.uneotech.com
+          server_port: 25
+          username: ${{ secrets.EMAIL_ADDRESS }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "CI/CD 成功 - main branch build 成功"
+          to: "jayce@uneotech.com"
+          from: "GitHub Actions <${{ secrets.EMAIL_ADDRESS }}>"
+          body: |
+            Build Success!
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+
+      # -------------------------------
+      # ✉️ 失敗通知 Email
+      # -------------------------------
+      - name: Send failure email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: mail.uneotech.com
+          server_port: 25
+          username: ${{ secrets.EMAIL_ADDRESS }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "❌ CI/CD 失敗 - main branch build 失敗"
+          to: "jayce@uneotech.com"
+          from: "GitHub Actions <${{ secrets.EMAIL_ADDRESS }}>"
+          body: |
+            Build Failed!
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}

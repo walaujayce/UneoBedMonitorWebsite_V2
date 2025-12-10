@@ -50,9 +50,42 @@ jobs:
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
 
+      # -----------------------------------
+      # 收集完整 workflow log（只在失敗時）
+      # -----------------------------------
+      - name: Collect logs
+        if: failure()
+        run: |
+          mkdir logs
+          dmesg > logs/system.log || true
+          journalctl -xe > logs/journal.log || true
+          cp $GITHUB_WORKSPACE/.github/workflows/*.yml logs/ 2>/dev/null || true
+
+          # 將整個 job log 收集：
+          echo "===== GitHub Job Log Begin =====" > logs/job.log
+          RUNNER_TRACKING_ID=""  # 避免污染
+          cat $GITHUB_STEP_SUMMARY >> logs/job.log 2>/dev/null || true
+          echo "===== GitHub Job Log End =====" >> logs/job.log
+
+          tar -czf logs.tar.gz logs
+
+      - name: Upload logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-failed-logs
+          path: logs.tar.gz
+
       # -------------------------------
       # ✉️ 失敗通知 Email
       # -------------------------------
+      - name: Download log artifact
+        if: failure()
+        uses: actions/download-artifact@v4
+        with:
+          name: build-failed-logs
+          path: .
+
       - name: Send failure email
         if: failure()
         uses: dawidd6/action-send-mail@v3
@@ -69,3 +102,6 @@ jobs:
             Repository: ${{ github.repository }}
             Branch: ${{ github.ref_name }}
             Commit: ${{ github.sha }}
+
+            已附上完整的工作流程 Log（logs.tar.gz）
+          attachments: logs.tar.gz
